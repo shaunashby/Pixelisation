@@ -12,11 +12,17 @@ has 'trigger_file' => (
     lazy_build => 1
     );
 
+has 'payload' => (
+    is => 'ro',
+    isa => 'Str',
+    init_arg => undef,
+    lazy_build => 1
+    );
+
 ## builders ##
 sub _build_trigger_file() { return Path::Class::File->new( shift->{path} ) }
 
-
-#sub _build_msg_as_string() { return shift->msg_file()->slurp  }
+sub _build_payload() { return shift->trigger_file()->slurp  }
 
 no Moose;
 
