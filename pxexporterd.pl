@@ -20,6 +20,7 @@ use Log::Log4perl qw(get_logger :levels);
 use File::ChangeNotify;
 
 use PXExport::Trigger;
+use Task::Payload;
 
 use Getopt::Std;
 our($opt_d);
@@ -89,7 +90,7 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 
 	# Create payload:
 	my $payload = Task::Payload->new({ payload => $_->payload });
-	
+	$payload->dump;
     } @triggers;
 
 }
