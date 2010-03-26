@@ -31,3 +31,21 @@ __PACKAGE__->meta()->make_immutable();
 1;
 
 __END__
+#
+# To-do:
+#
+# sub source_node() {
+#     return shift->{SOURCENODE};
+# }
+
+# sub source_url(){
+#     return shift->{SOURCEURL};
+# }
+
+# sub source_path() {
+#     return shift->{SOURCEPATH};
+# }
+
+# sub trigger_path() {
+#     return shift->{TRIGGER_OBJECT}->path;
+# }

@@ -15,7 +15,7 @@ use warnings;
 
 use Task::Sandbox;
 
-use constant MAX_POP => 10;
+use constant MAX_POPULATION => 10;
 
 sub new() {
     my $proto = shift;
@@ -32,21 +32,29 @@ sub push() {
     my ($item) = @_;
     # Add an item first, then check the number of members. Once we hit the
     # maximum population, the creation of a new sandbox is triggered:
-    if ($self->_membership() > MAX_POP) {
+    if ($self->_membership() == MAX_POPULATION) {
 	# Create a sandbox for this queue and generate the merge trigger. The
 	# queue will be flushed after this step, returning 
-	my $sandbox = Task::Sandbox->new( $self->{QUEUE} );       
-	# Add the item to the new queue:
-	$self->{QUEUE} = [ $item ];
-    } else {
-	# Add item to the queue until queue membership reaches MAX_POP:
-	push(@{$self->{QUEUE}},$item);
+	my $sandbox = Task::Sandbox->new( $self->{QUEUE} );
+	$sandbox->setup();
+	$sandbox->create_trigger();
+	# Flush the queue and restart. By the time we flush, the tasks will be complete:
+	$self->_flush();
     }
+    
+    # Add item to the queue until queue membership reaches MAX_POP:
+    push(@{$self->{QUEUE}},$item);
 }
 
 sub _membership() {
     my $self = shift;
-    return $#{$self->{QUEUE}};
+    return $#{$self->{QUEUE}} + 1;
+}
+
+sub _flush() {
+    my $self = shift;
+    $main::logger->info(sprintf("[Task::Queue]: Flushing %d items\n",$self->_membership()));
+    $self->{QUEUE} = [];
 }
 
 1;

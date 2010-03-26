@@ -20,9 +20,11 @@ use Log::Log4perl qw(get_logger :levels);
 use File::ChangeNotify;
 
 use PXExport::Trigger;
+
 use Task::Payload;
 use Task::Queue;
-    
+use Task::Queue::Item;
+
 use Getopt::Std;
 our($opt_d);
 
@@ -30,71 +32,84 @@ our($opt_d);
 getopts('d');
 
 # Where we'll be scanning for triggers:
-use constant TRIGGERDIR => $ENV{HOME}."/triggers";
-use constant EXPORTDIR => $ENV{HOME}."/export";
+use constant JOB_TRIGGER_DIR => $ENV{PIX_HOME}."/job/input/triggers";
 
 # Configuration for Log::Log4perl:
 my %logconf = (
-    "log4perl.logger.PXExporter" => "INFO, PXExporterLogFile",
+    "log4perl.logger.PXExporter" => "INFO, PXExporterLogFile,Screen",
     "log4perl.appender.PXExporterLogFile" => "Log::Log4perl::Appender::File",
     "log4perl.appender.PXExporterLogFile.filename" => "./pxexport.log",
     "log4perl.appender.PXExporterLogFile.layout" => "Log::Log4perl::Layout::PatternLayout",
-    "log4perl.appender.PXExporterLogFile.layout.ConversionPattern" => "[%d PID:%P %p] %m%n"
+    "log4perl.appender.PXExporterLogFile.layout.ConversionPattern" => "[%d PID:%P %p] %m%n",
+    "log4perl.appender.Screen" => "Log::Log4perl::Appender::Screen",
+    "log4perl.appender.Screen.layout" => "Log::Log4perl::Layout::PatternLayout",
+    "log4perl.appender.Screen.layout.ConversionPattern" => "[%d PID:%P %p] %m%n",
+    "log4perl.logger.Task.Queue" => "INFO, PXExporterLogFile,Screen"
     );
 
 # Init logging:
 Log::Log4perl->init(\%logconf);
 
 # Get the logger:
-my $log = get_logger('PXExporter');
+our $logger = get_logger('PXExporter');
 
 # Signal handlers set this to true if execution should stop:
 my $shutdown = 0;
 
 # If we want to run as a daemon:
 if ($opt_d) {
-    chdir '/'                 or $log->logdie("Can't chdir to /: $!");
+    chdir '/'                 or $logger->logdie("Can't chdir to /: $!");
     umask 0;
 
     # Handle signals:
-    $SIG{'TERM'} = sub { $log->logwarn("TERM signal received...shutting down."); $shutdown = 1 };
-    $SIG{'KILL'} = sub { $log->logwarn("KILL signal received...shutting down."); $shutdown = 1 };
+    $SIG{'TERM'} = sub { $logger->logwarn("TERM signal received...shutting down."); $shutdown = 1 };
+    $SIG{'KILL'} = sub { $logger->logwarn("KILL signal received...shutting down."); $shutdown = 1 };
     $SIG{'HUP'} = sub { return 'IGNORE' };
     $SIG{'PIPE'} = sub { return 'IGNORE' };
 
     # Close standard filehandles:
-    open STDIN, '/dev/null'   or $log->logdie("Can't read /dev/null: $!");    
-    open STDOUT, '>/dev/null' or $log->logdie("Can't write to /dev/null: $!");
-    open STDERR, '>/dev/null' or $log->logdie("Can't write to /dev/null: $!");
+    open STDIN, '/dev/null'   or $logger->logdie("Can't read /dev/null: $!");    
+    open STDOUT, '>/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
+    open STDERR, '>/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
     
-    defined(my $pid = fork)   or $log->logdie("Can't fork: $!");
+    defined(my $pid = fork)   or $logger->logdie("Can't fork: $!");
 
     exit if $pid;
 
-    POSIX::setsid()           or $log->logdie("Can't start a new session: $!");
+    POSIX::setsid()           or $logger->logdie("Can't start a new session: $!");
 }
 
 my $watcher = File::ChangeNotify->instantiate_watcher(
-    directories => [ TRIGGERDIR ],
+    directories => [ JOB_TRIGGER_DIR ],
     filter      => qr/\.trigger$/,
     sleep_interval => 5,
     event_class => 'PXExport::Trigger'
     );
 
-my $taskqueue = [];
+# The queue holds a list of Task::Queue::Items (these are worker objects which
+# are run sequentially, each handling the copy of one revolution of data to
+# a processing sandbox):
+my $queue = Task::Queue->new;
 
 # Run the event loop:
 while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
     map {
-	$log->info("Trigger at path: ".$_->path());
-	$log->info("--- type: ".$_->type());
-	# Create payload:
-	my $payload = Task::Payload->new({ payload => $_->payload });
-	$payload->dump;
+	$logger->debug("Trigger at path: ".$_->path());
+	if ($_->type() eq 'create') {
+	    # Create payload. Pass in the trigger object:
+	    my $payload = Task::Payload->new( $_ );
+	    # Create the task for this payload:
+	    my $task = Task::Queue::Item->new( $payload );
+	    # Run the copy task:
+	    $task->run();	
+	    # Add the task to the queue:
+	    $queue->push( $task );
+	} else {
+	    $logger->debug("--- got trigger of type: ".$_->type());
+	}
     } @triggers;
-
 }
 
-$log->warn("Shutting down.");
+$logger->warn("Shutting down.");
 
 exit(0);
