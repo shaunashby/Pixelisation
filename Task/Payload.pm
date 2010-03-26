@@ -14,19 +14,49 @@ package Task::Payload;
 use strict;
 use warnings;
 
+use constant NULL_URL => 'file:///dev/null';
+
 sub new() {
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    my $self = shift;
+    my $self = (@_ == 0) ?             # Error if no params given
+	croak("No params given.\n")
+	: (ref($_[0]) eq 'HASH') ? $_[0] # Got hashref already - OK
+	: { @_ };                        # Otherwise, store the params in a hash
+    # Defaults for payload parameters:
+    $self->{REVNUM} = 99999999;
+    $self->{INSTRUMENT} = undef;
+    $self->{URL} = NULL_URL;
+
     bless($self,$class);
+    # Strip out information from payload:
+    if (my ($rev,$inst,$url) = ($self->{payload} =~ /^(\d\d\d\d) (.*?) (.*?)$/)) {
+	$self->{REVNUM} = $rev;
+	$self->{INSTRUMENT} = $inst;
+	$self->{URL} = $url;
+    } 
+    
     return $self;
 }
 
+sub instrument() {
+    return shift->{INSTRUMENT};
+}
+
+sub revnum(){
+    return shift->{REVNUM};
+}
+
+sub url(){
+    return shift->{URL};
+}
+
 sub dump() {
-    my $self =shift;
-#    0123 isgri compute-0-0:/state/partition1/survey/rev_3/genpixels/0123/pixels"
-    my ($rev,$inst,$url) = ($self->{payload} =~ /^(\d\d\d\d) (.*?) (.*?)$/);
-    printf(" * payload -- %04d %-s URL=%s\n",$rev,$inst,$url);
+    my $self = shift;
+    printf(" * payload -- %04d %-s URL=%s\n",
+	   $self->{REVNUM},
+	   $self->{INSTRUMENT},
+	   $self->{URL});
 }
 
 1;

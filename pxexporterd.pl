@@ -21,7 +21,8 @@ use File::ChangeNotify;
 
 use PXExport::Trigger;
 use Task::Payload;
-
+use Task::Queue;
+    
 use Getopt::Std;
 our($opt_d);
 
@@ -87,7 +88,6 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
     map {
 	$log->info("Trigger at path: ".$_->path());
 	$log->info("--- type: ".$_->type());
-
 	# Create payload:
 	my $payload = Task::Payload->new({ payload => $_->payload });
 	$payload->dump;
