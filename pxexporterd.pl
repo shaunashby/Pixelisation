@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl
+#!/opt/local/bin/perl -d
 #____________________________________________________________________ 
 # File: pxexporterd.pl
 #____________________________________________________________________ 
@@ -27,6 +27,8 @@ use Task::Queue::Item;
 
 use Getopt::Std;
 our($opt_d);
+
+$| = 1;
 
 # Parse opions:
 getopts('d');
@@ -82,7 +84,7 @@ if ($opt_d) {
 my $watcher = File::ChangeNotify->instantiate_watcher(
     directories => [ JOB_TRIGGER_DIR ],
     filter      => qr/\.trigger$/,
-    sleep_interval => 5,
+    sleep_interval => 20,
     event_class => 'PXExport::Trigger'
     );
 
@@ -90,6 +92,7 @@ my $watcher = File::ChangeNotify->instantiate_watcher(
 # are run sequentially, each handling the copy of one revolution of data to
 # a processing sandbox):
 my $queue = Task::Queue->new;
+my $id = 1;
 
 # Run the event loop:
 while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
@@ -98,18 +101,20 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 	if ($_->type() eq 'create') {
 	    # Create payload. Pass in the trigger object:
 	    my $payload = Task::Payload->new( $_ );
-	    # Create the task for this payload:
-	    my $task = Task::Queue::Item->new( $payload );
+	    # Create the task for this payload and pass in the ID:
+	    my $task = Task::Queue::Item->new( $payload, $id );
 	    # Run the copy task:
 	    $task->run();	
 	    # Add the task to the queue:
 	    $queue->push( $task );
+	    $id++;
 	} else {
 	    $logger->debug("--- got trigger of type: ".$_->type());
 	}
     } @triggers;
 }
 
+$logger->info("Processed $id triggers");
 $logger->warn("Shutting down.");
 
 exit(0);

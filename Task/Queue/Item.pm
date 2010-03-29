@@ -22,6 +22,8 @@ use File::Basename qw(fileparse);
 
 use Carp qw(croak);
 
+$| = 1;
+
 sub new() {
     my $proto = shift;
     my $class = ref($proto) || $proto;
@@ -34,22 +36,27 @@ sub new() {
 
     # Set status to v high number. This will be set to 0 on succesful completion:
     $self->{STATUS} = 9999;
-    
+    $self->{ID} = shift || 99999999;
     return bless($self, $class);
+}
+
+sub id() {
+    my $self = shift;
+    @_ ? $self->{ID} = shift
+	: $self->{ID};
 }
 
 sub run() {
     my $self = shift;
-    $main::logger->info("[Task::Queue::Item]: Got payload ".$self->{PAYLOAD_OBJECT});
-    $main::logger->info("[Task::Queue::Item]: Running task for ".$self->{PAYLOAD_OBJECT}->trigger_path());
 
     # Copy from the remote source to a local directory. We just use the URL as it is so that
     # we end up with a directory with a UUID under the staging area:    
-    $self->{SOURCE_PATH} = $self->{PAYLOAD_OBJECT}->source_path;
-    $self->{SOURCE_URL}  = $self->{PAYLOAD_OBJECT}->source_url; # includes node name
+
+    $main::logger->info("[Task::Queue::Item]: Got payload ".$self->{PAYLOAD_OBJECT});
+    $main::logger->info("[Task::Queue::Item]: Running task for ".$self->{PAYLOAD_OBJECT}->trigger_path());
 
     # Strip off the top directory (a UUID):
-    $self->{DEST_SUBDIR} = [ reverse ( split("/",$self->{SOURCE_PATH} ) ) ]->[0];
+    $self->{DEST_SUBDIR} = [ reverse ( split("/", $self->{PAYLOAD_OBJECT}->source_path() ) ) ]->[0];
     $self->{DEST_UUID} = $self->{DEST_SUBDIR};
 
     # Set the export path:
@@ -57,7 +64,7 @@ sub run() {
     # Where data will be staged to:
     $self->{STAGING_PATH} = STAGING_DIR."/".$self->{DEST_SUBDIR};
 
-    $main::logger->info(sprintf("[Task::Queue::Item]: Staging data from %s",$self->{SOURCE_URL}));
+    $main::logger->info(sprintf("[Task::Queue::Item]: Staging data from %s",$self->{PAYLOAD_OBJECT}->url() ));
     $main::logger->info(sprintf("[Task::Queue::Item]: Staging data to %s",$self->{STAGING_PATH}));
 
     # FIXME: tmp path for the copy
@@ -69,8 +76,7 @@ sub run() {
 	}
 	$main::logger->info(sprintf("[RSYNC] %s",$_));
     }
-    close(RSYNC);
-      
+    close(RSYNC);      
     
     # TEMP: Just create an empty directory to check moving etc.:
     use File::Path;
@@ -97,8 +103,10 @@ sub uuid() {
 
 sub finalize() {
     my $self = shift;
-    $main::logger->info("[Task::Queue::Item]: finalize called for $self");
+    $main::logger->info("[Task::Queue::Item]: finalize called for task ID ".$self->id);
     # Rename to indicate completion:
+    $main::logger->info("[Task::Queue::Item]: Renaming ".$self->{PAYLOAD_OBJECT}->trigger_path());
+
     mv($self->{PAYLOAD_OBJECT}->trigger_path(),$self->{PAYLOAD_OBJECT}->trigger_path().".done");
     # Export the data to the export area:
     $self->_export();

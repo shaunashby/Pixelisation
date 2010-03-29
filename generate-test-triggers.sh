@@ -23,7 +23,7 @@ INSTRUMENT=isgri
 NODE=cluster
 PATH=/share/pixels2/pixel_merge/data-/compute-0-2/${UUID}
 
-echo "$REVNUM $INSTRUMENT $NODE:$PATH" >> $TRIGGER_PATH/${UUID}.trigger
+echo "$REVNUM $INSTRUMENT $NODE:$PATH" >> $TRIGGER_PATH/${REVNUM}.trigger
 #0124 isgri URL=compute-0-0:/state/partition1/survey/rev_3/genpixels/0124/pixels
 
 

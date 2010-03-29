@@ -15,7 +15,7 @@ use warnings;
 
 use Task::Sandbox;
 
-use constant MAX_POPULATION => 10;
+use constant MAX_POPULATION => 5;
 
 sub new() {
     my $proto = shift;
@@ -23,15 +23,15 @@ sub new() {
     my $self = shift || {};
     bless($self,$class);
     $self->{QUEUE} = [];
-    $self->{POPULATION} = 0;
     return $self;
 }
 
 sub push() {
     my $self = shift;
     my ($item) = @_;
-    # Add an item first, then check the number of members. Once we hit the
-    # maximum population, the creation of a new sandbox is triggered:
+    # Check the number of members. Once we hit the
+    # maximum population, the creation of a new
+    # sandbox is triggered and the queue reset:
     if ($self->_membership() == MAX_POPULATION) {
 	# Create a sandbox for this queue and generate the merge trigger. The
 	# queue will be flushed after this step, returning 
