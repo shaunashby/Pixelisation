@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl -d
+#!/opt/local/bin/perl
 #____________________________________________________________________ 
 # File: pxexporterd.pl
 #____________________________________________________________________ 
@@ -33,20 +33,18 @@ $| = 1;
 # Parse opions:
 getopts('d');
 
+# Where the daemon will run:
+use constant PIX_HOME => '/Users/ashby/Desktop/ISDC/POE-Pixelisation/pix';
 # Where we'll be scanning for triggers:
-use constant JOB_TRIGGER_DIR => $ENV{PIX_HOME}."/job/input/triggers";
+use constant JOB_TRIGGER_DIR => PIX_HOME."/job/input/triggers";
 
 # Configuration for Log::Log4perl:
 my %logconf = (
-    "log4perl.logger.PXExporter" => "INFO, PXExporterLogFile,Screen",
+    "log4perl.logger.PXExporter" => "INFO, PXExporterLogFile",
     "log4perl.appender.PXExporterLogFile" => "Log::Log4perl::Appender::File",
     "log4perl.appender.PXExporterLogFile.filename" => "./pxexport.log",
     "log4perl.appender.PXExporterLogFile.layout" => "Log::Log4perl::Layout::PatternLayout",
-    "log4perl.appender.PXExporterLogFile.layout.ConversionPattern" => "[%d PID:%P %p] %m%n",
-    "log4perl.appender.Screen" => "Log::Log4perl::Appender::Screen",
-    "log4perl.appender.Screen.layout" => "Log::Log4perl::Layout::PatternLayout",
-    "log4perl.appender.Screen.layout.ConversionPattern" => "[%d PID:%P %p] %m%n",
-    "log4perl.logger.Task.Queue" => "INFO, PXExporterLogFile,Screen"
+    "log4perl.appender.PXExporterLogFile.layout.ConversionPattern" => "[%d %p] %m%n"
     );
 
 # Init logging:
@@ -60,7 +58,7 @@ my $shutdown = 0;
 
 # If we want to run as a daemon:
 if ($opt_d) {
-    chdir '/'                 or $logger->logdie("Can't chdir to /: $!");
+    chdir PIX_HOME                 or $logger->logdie("Can't chdir to ".PIX_HOME.": $!");
     umask 0;
 
     # Handle signals:
@@ -70,7 +68,7 @@ if ($opt_d) {
     $SIG{'PIPE'} = sub { return 'IGNORE' };
 
     # Close standard filehandles:
-    open STDIN, '/dev/null'   or $logger->logdie("Can't read /dev/null: $!");    
+    open STDIN, '/dev/null'   or $logger->logdie("Can't read /dev/null: $!");
     open STDOUT, '>/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
     open STDERR, '>/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
     
@@ -93,6 +91,7 @@ my $watcher = File::ChangeNotify->instantiate_watcher(
 # a processing sandbox):
 my $queue = Task::Queue->new;
 my $id = 1;
+$logger->info("daemon started.");
 
 # Run the event loop:
 while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
@@ -109,7 +108,7 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 	    $queue->push( $task );
 	    $id++;
 	} else {
-	    $logger->debug("--- got trigger of type: ".$_->type());
+	    $logger->info("--- got trigger of type: ".$_->type());
 	}
     } @triggers;
 }

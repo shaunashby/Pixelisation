@@ -14,10 +14,12 @@ package Task::Queue::Item;
 use strict;
 use warnings;
 
-use constant STAGING_DIR       => $ENV{PIX_HOME}."/staging";
-use constant EXPORT_DIR        => $ENV{PIX_HOME}."/export";
+use constant STAGING_DIR            => $ENV{PIX_HOME}."/staging";
+use constant EXPORT_DIR             => $ENV{PIX_HOME}."/export";
+use constant COMPLETED_TRIGGER_DIR  => $ENV{PIX_HOME}."/job/input/triggers.COMPLETED";
+use constant FAILED_TRIGGER_DIR     => $ENV{PIX_HOME}."/job/input/triggers.FAILED";
 
-use File::Copy qw(mv);
+use File::Copy qw(cp mv);
 use File::Basename qw(fileparse);
 
 use Carp qw(croak);
@@ -48,33 +50,32 @@ sub id() {
 
 sub run() {
     my $self = shift;
-
     # Copy from the remote source to a local directory. We just use the URL as it is so that
     # we end up with a directory with a UUID under the staging area:    
-
     $main::logger->info("[Task::Queue::Item]: Got payload ".$self->{PAYLOAD_OBJECT});
     $main::logger->info("[Task::Queue::Item]: Running task for ".$self->{PAYLOAD_OBJECT}->trigger_path());
 
     # Strip off the top directory (a UUID):
     $self->{DEST_SUBDIR} = [ reverse ( split("/", $self->{PAYLOAD_OBJECT}->source_path() ) ) ]->[0];
     $self->{DEST_UUID} = $self->{DEST_SUBDIR};
-
     # Set the export path:
     $self->{EXPORT_PATH} = EXPORT_DIR."/".$self->{DEST_SUBDIR};
     # Where data will be staged to:
     $self->{STAGING_PATH} = STAGING_DIR."/".$self->{DEST_SUBDIR};
 
-    $main::logger->info(sprintf("[Task::Queue::Item]: Staging data from %s",$self->{PAYLOAD_OBJECT}->url() ));
-    $main::logger->info(sprintf("[Task::Queue::Item]: Staging data to %s",$self->{STAGING_PATH}));
+    $main::logger->debug(sprintf("[Task::Queue::Item]: Staging data from %s",$self->{PAYLOAD_OBJECT}->url() ));
+    $main::logger->debug(sprintf("[Task::Queue::Item]: Staging data to %s",$self->{STAGING_PATH}));
 
     # FIXME: tmp path for the copy
     $self->{TMP_SOURCE_URL} = 'isdclogin2:/unsaved_data/ashby/8b3db1e5-dbff-4ca5-bf87-bbd9f72759da';
     open(RSYNC,"rsync -auv -e ssh ".$self->{TMP_SOURCE_URL}." ".STAGING_DIR."|");
     while(<RSYNC>) {
 	if (my ($size,$speed) = ( $_ =~ /.*? received (.*?) bytes \s*(.*?) bytes\/sec$/ )) {
-	    $main::logger->info(sprintf("[RSYNC] SIZE %s    SPEED %s",$size,$speed));
+	    $size = $size / (1024 * 1024); # MB
+	    $speed = $speed / (1024 * 1024); # MB/sec
+	    $main::logger->info(sprintf("[RSYNC] Copied %f MB; rate %f MB/sec",$size,$speed));
 	}
-	$main::logger->info(sprintf("[RSYNC] %s",$_));
+	$main::logger->debug(sprintf("[RSYNC] %s",$_));
     }
     close(RSYNC);      
     
@@ -104,22 +105,25 @@ sub uuid() {
 sub finalize() {
     my $self = shift;
     $main::logger->info("[Task::Queue::Item]: finalize called for task ID ".$self->id);
-    # Rename to indicate completion:
-    $main::logger->info("[Task::Queue::Item]: Renaming ".$self->{PAYLOAD_OBJECT}->trigger_path());
-
-    mv($self->{PAYLOAD_OBJECT}->trigger_path(),$self->{PAYLOAD_OBJECT}->trigger_path().".done");
     # Export the data to the export area:
     $self->_export();
+    if ($self->status() == 0) {
+	# Copy to completed triggers dir if status OK, otherwise copy to failed triggers dir:
+	$main::logger->debug("[Task::Queue::Item]: Copying ".$self->{PAYLOAD_OBJECT}->trigger_path()." to triggers.COMPLETED");
+	cp($self->{PAYLOAD_OBJECT}->trigger_path(), COMPLETED_TRIGGER_DIR );
+    } else {
+	cp($self->{PAYLOAD_OBJECT}->trigger_path(), FAILED_TRIGGER_DIR );
+    }
 }
 
 sub _export() {
     my $self = shift;
-    $main::logger->info(sprintf("[Task::Queue::Item]: Exporting data to %s",EXPORT_DIR));
+    $main::logger->debug(sprintf("[Task::Queue::Item]: Exporting data to %s",EXPORT_DIR));
     if ( -d $self->{STAGING_PATH} ) {
 	mv($self->{STAGING_PATH},$self->{EXPORT_PATH});
 	$self->{STATUS} = 0; # Gooood
     } else {
-	$main::logger->info(sprintf("[Task::Queue::Item]: Skipping export (non-existent path: %s)",
+	$main::logger->debug(sprintf("[Task::Queue::Item]: Skipping export (non-existent path: %s)",
 				    $self->{STAGING_PATH}));
 	$self->{STATUS} = 10; # Baaad man
     }

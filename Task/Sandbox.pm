@@ -30,7 +30,7 @@ sub new() {
 	: croak("Needs queue array ref as parameter.");
     
     bless($self, $class);
-    $main::logger->info("[Task::Sandbox]: Created with ID $self.");
+    $main::logger->info("[Task::Sandbox]: Created new sandbox for queue.");
     # Somewhere to store the paths to the exported data, ready for merging:
     $self->{EXPORT_TABLE} = [];
     return $self;
@@ -38,7 +38,7 @@ sub new() {
 
 sub setup() {
     my $self = shift;
-    $main::logger->info("[Task::Sandbox]: Doing setup. Exporting data for tasks ....");
+    $main::logger->info("[Task::Sandbox]: Doing setup. Exporting data for tasks.");
     map {
 	# Ask the tasks to run their finalization steps:
 	$_->finalize();
