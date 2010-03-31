@@ -20,11 +20,8 @@ use constant COMPLETED_TRIGGER_DIR  => $ENV{PIX_HOME}."/job/input/triggers.COMPL
 use constant FAILED_TRIGGER_DIR     => $ENV{PIX_HOME}."/job/input/triggers.FAILED";
 
 use File::Copy qw(cp mv);
-use File::Basename qw(fileparse);
 
 use Carp qw(croak);
-
-$| = 1;
 
 sub new() {
     my $proto = shift;
@@ -66,9 +63,9 @@ sub run() {
     $main::logger->debug(sprintf("[Task::Queue::Item]: Staging data from %s",$self->{PAYLOAD_OBJECT}->url() ));
     $main::logger->debug(sprintf("[Task::Queue::Item]: Staging data to %s",$self->{STAGING_PATH}));
 
-    # FIXME: tmp path for the copy
-    $self->{TMP_SOURCE_URL} = 'isdclogin2:/unsaved_data/ashby/8b3db1e5-dbff-4ca5-bf87-bbd9f72759da';
-    open(RSYNC,"rsync -auv -e ssh ".$self->{TMP_SOURCE_URL}." ".STAGING_DIR."|");
+    my $sourceurl = $self->{PAYLOAD_OBJECT}->url();
+    
+    open(RSYNC,"rsync -auv -e ssh $sourceurl ".STAGING_DIR."|") || die __PACKAGE__.": Unable to rsync $sourceurl :".$!;
     while(<RSYNC>) {
 	if (my ($size,$speed) = ( $_ =~ /.*? received (.*?) bytes \s*(.*?) bytes\/sec$/ )) {
 	    $size = $size / (1024 * 1024); # MB
@@ -77,11 +74,7 @@ sub run() {
 	}
 	$main::logger->debug(sprintf("[RSYNC] %s",$_));
     }
-    close(RSYNC);      
-    
-    # TEMP: Just create an empty directory to check moving etc.:
-    use File::Path;
-    mkpath($self->{STAGING_PATH});
+    close(RSYNC);
 }
 
 sub staging_path() {
