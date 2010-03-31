@@ -12,15 +12,11 @@
 #--------------------------------------------------------------------
 use strict;
 use warnings;
-use lib ".";
-
 use POSIX;
 use Log::Log4perl qw(get_logger :levels);
-
 use File::ChangeNotify;
 
 use PXExport::Trigger;
-
 use Task::Payload;
 use Task::Queue;
 use Task::Queue::Item;
@@ -34,7 +30,8 @@ $| = 1;
 getopts('d');
 
 # Where the daemon will run:
-use constant PIX_HOME => '/Users/ashby/Desktop/ISDC/POE-Pixelisation/pix';
+use constant PIX_HOME => "/export/data2/pixels2/Pixelisation/pix";
+
 # Where we'll be scanning for triggers:
 use constant JOB_TRIGGER_DIR => PIX_HOME."/job/input/triggers";
 
