@@ -12,36 +12,38 @@
 #--------------------------------------------------------------------
 use strict;
 use warnings;
-use lib ".";
-
 use POSIX;
 use Log::Log4perl qw(get_logger :levels);
-
 use File::ChangeNotify;
 
 use PXMerge::Trigger;
-
 use Getopt::Std;
+
 our($opt_d);
+
+$| = 1;
 
 # Parse opions:
 getopts('d');
 
+# Where the daemon will run:
+#use constant PIX_HOME => "/export/data2/pixels2/Pixelisation/pix";
+use constant PIX_HOME => "/Users/ashby/Desktop/ISDC/pixelisation/Pixelisation/pix";
+
 # Where we'll be scanning for triggers:
-use constant TRIGGERDIR => $ENV{HOME}."/merge/triggers";
-use constant EXPORTDIR => $ENV{HOME}."/export";
+use constant MERGE_TRIGGER_DIR => PIX_HOME."/merge/input/triggers";
+
+# Where the output pixels will be merged to:
+use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
 
 # Configuration for Log::Log4perl:
 my %logconf = (
-    "log4perl.logger.PXMerger" => "INFO, PXMergerLogFile,Screen",
-    "log4perl.appender.PXMergeLogFile" => "Log::Log4perl::Appender::File",
-    "log4perl.appender.PXMergeLogFile.filename" => "./pxexport.log",
-    "log4perl.appender.PXMergeLogFile.layout" => "Log::Log4perl::Layout::PatternLayout",
-    "log4perl.appender.PXMergeLogFile.layout.ConversionPattern" => "[%d PID:%P %p] %m%n",
-    "log4perl.appender.Screen" => "Log::Log4perl::Appender::Screen",
-    "log4perl.appender.Screen.layout" => "Log::Log4perl::Layout::PatternLayout",
-    "log4perl.appender.Screen.layout.ConversionPattern" => "[%d PID:%P %p] %m%n"
-);
+    "log4perl.logger.PXMerger" => "INFO, PXMergerLogFile",
+    "log4perl.appender.PXMergerLogFile" => "Log::Log4perl::Appender::File",
+    "log4perl.appender.PXMergerLogFile.filename" => "./pxmerge.log",
+    "log4perl.appender.PXMergerLogFile.layout" => "Log::Log4perl::Layout::PatternLayout",
+    "log4perl.appender.PXMergerLogFile.layout.ConversionPattern" => "[%d %p] %m%n"
+    );
 
 # Init logging:
 Log::Log4perl->init(\%logconf);
@@ -54,7 +56,7 @@ my $shutdown = 0;
 
 # If we want to run as a daemon:
 if ($opt_d) {
-    chdir '/'                 or $logger->logdie("Can't chdir to /: $!");
+    chdir PIX_HOME                 or $logger->logdie("Can't chdir to ".PIX_HOME.": $!");
     umask 0;
 
     # Handle signals:
@@ -64,7 +66,7 @@ if ($opt_d) {
     $SIG{'PIPE'} = sub { return 'IGNORE' };
 
     # Close standard filehandles:
-    open STDIN, '/dev/null'   or $logger->logdie("Can't read /dev/null: $!");    
+    open STDIN, '/dev/null'   or $logger->logdie("Can't read /dev/null: $!");
     open STDOUT, '>/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
     open STDERR, '>/dev/null' or $logger->logdie("Can't write to /dev/null: $!");
     
@@ -76,20 +78,24 @@ if ($opt_d) {
 }
 
 my $watcher = File::ChangeNotify->instantiate_watcher(
-    directories => [ TRIGGERDIR ],
+    directories => [ MERGE_TRIGGER_DIR ],
     filter      => qr/\.trigger$/,
-    sleep_interval => 5,
+    sleep_interval => 20,
     event_class => 'PXMerge::Trigger'
     );
+
+$logger->info("daemon started.");
 
 # Run the event loop:
 while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
     map {
 	$logger->debug("Trigger at path: ".$_->path());
 	if ($_->type() eq 'create') {
-
+	    map {
+		$logger->info("Merge trigger input dir: ".$_);
+	    } @{$_->inputs};
 	} else {
-	    $logger->debug("--- got trigger of type: ".$_->type());
+	    $logger->info("--- got trigger of type: ".$_->type());
 	}
     } @triggers;
 }
