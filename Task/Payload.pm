@@ -20,11 +20,7 @@ use overload q{""} => \&to_string;
 
 sub to_string() {
     my ($self) = @_;
-    return  sprintf("rev=%04d i=%s n=%s srcpth=%s",
-		    $self->revnum(),
-		    $self->instrument(),
-		    $self->node(),
-		    $self->source_path());
+    return sprintf("%04d:%s",$self->revnum(),$self->instrument());
 }
 
 sub new() {

@@ -20,10 +20,14 @@ fi
 
 UUID=`uuidgen`
 INSTRUMENT=isgri
-NODE=cluster
-PATH=/share/pixels2/pixel_merge/data-/compute-0-2/${UUID}
-
-echo "$REVNUM $INSTRUMENT $NODE:$PATH" >> $TRIGGER_PATH/${UUID}.trigger
+NODE=localhost
+DPATH=/tmp/share/pixels2/pixel_merge/${UUID}
+mkdir -p $DPATH
+# Copy the pixels stuff from repo:
+pushd $DPATH
+svn export -q http://subversion.isdc.unige.ch/isdcvo/svn/trunk/pixelization/pixels
+popd
+echo "$REVNUM $INSTRUMENT $NODE:$DPATH" >> $TRIGGER_PATH/${UUID}.trigger
 #0124 isgri URL=compute-0-0:/state/partition1/survey/rev_3/genpixels/0124/pixels
 
 

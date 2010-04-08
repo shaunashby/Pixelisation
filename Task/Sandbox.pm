@@ -45,7 +45,7 @@ sub setup() {
 	# Store the export path: this is where the merge will read from (and will
 	# be written to the trigger file):
 	if ($_->status() == 0) {
-	    push(@{$self->{EXPORT_TABLE}},$_->export_path());
+	    push(@{$self->{EXPORT_TABLE}},$_);
 	}	
     } @{$self->{QUEUE}};
 }

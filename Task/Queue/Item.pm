@@ -23,6 +23,8 @@ use File::Copy qw(cp mv);
 
 use Carp qw(croak);
 
+use overload q{""} => \&to_string;
+
 sub new() {
     my $proto = shift;
     my $class = ref($proto) || $proto;
@@ -49,7 +51,7 @@ sub run() {
     my $self = shift;
     # Copy from the remote source to a local directory. We just use the URL as it is so that
     # we end up with a directory with a UUID under the staging area:    
-    $main::logger->info("[Task::Queue::Item]: Got payload ".$self->{PAYLOAD_OBJECT});
+    $main::logger->info("[Task::Queue::Item]: Got payload -> ".$self->{PAYLOAD_OBJECT});
     $main::logger->info("[Task::Queue::Item]: Running task for ".$self->{PAYLOAD_OBJECT}->trigger_path());
 
     # Strip off the top directory (a UUID):
@@ -120,6 +122,15 @@ sub _export() {
 				    $self->{STAGING_PATH}));
 	$self->{STATUS} = 10; # Baaad man
     }
+}
+
+# Use for printing the items to the merge trigger file:
+sub to_string() {
+    my $self = shift;
+    # Format for the entry in the merge trigger file:
+    # ID rev instrument export_path
+    # The rev/instrument part comes from the payload object (which overloads "")
+    return sprintf("%04d:%s:%s",$self->{ID},$self->{PAYLOAD_OBJECT},$self->{EXPORT_PATH});
 }
 
 1;
