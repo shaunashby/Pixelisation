@@ -17,6 +17,8 @@ use Log::Log4perl qw(get_logger :levels);
 use File::ChangeNotify;
 
 use PXMerge::Trigger;
+use Task::Command::PixelMerge;
+
 use Getopt::Std;
 
 our($opt_d);
@@ -27,8 +29,7 @@ $| = 1;
 getopts('d');
 
 # Where the daemon will run:
-#use constant PIX_HOME => "/export/data2/pixels2/Pixelisation/pix";
-use constant PIX_HOME => "/Users/ashby/Desktop/ISDC/pixelisation/Pixelisation/pix";
+use constant PIX_HOME => "/export/data2/pixels2/Pixelisation/pix";
 
 # Where we'll be scanning for triggers:
 use constant MERGE_TRIGGER_DIR => PIX_HOME."/merge/input/triggers";
@@ -92,7 +93,31 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 	$logger->debug("Trigger at path: ".$_->path());
 	if ($_->type() eq 'create') {
 	    map {
-		$logger->info("Merge trigger input dir: ".$_);
+		$logger->info("Bookkeeping: ".$_);
+		$logger->info("Going to merge from ".$_->path);
+		# Run the pixel_merge command:
+		my $merge_cmd = Task::Command::PixelMerge->new(
+		    'Input' => $_->path,
+		    'Output' => PIXEL_ARCHIVE_DIR
+		    );
+
+		$merge_cmd->run;
+		# Check the return status:
+		if ($merge_cmd->status) {
+		    $logger->warn("Task::Command::PixelMerge exited with status ".$merge_cmd->status);
+		    map {
+			chomp;
+			$logger->warn("T::C::PM::STDERR > ".$_);
+		    } @{ $merge_cmd->stderr };
+		} else {
+		    # In principle, everything was OK. Lets check the STDOUT buffer for the
+		    # key "Log_3  : Merging of all pixel files is successfully finished." msg:
+		    if (grep($_ =~ /.*?: Merging of all pixel files is successfully finished/, @{ $merge_cmd->stdout })) {
+			$logger->info("Merge complete for ".$_);
+		    } else {
+			$logger->warn("Task::Command::PixelMerge: INCOMPLETE MERGE for ".$_);
+		    }
+		}
 	    } @{$_->inputs};
 	} else {
 	    $logger->info("--- got trigger of type: ".$_->type());

@@ -2,12 +2,13 @@ package PXMerge::Trigger;
 use Moose;
 use namespace::clean -except => 'meta';
 use Path::Class::File;
+use PXMerge::Input;
 
 extends 'File::ChangeNotify::Event';
 
 has 'inputs' => (
     is => 'ro',
-    isa => 'ArrayRef',
+    isa => 'ArrayRef[PXMerge:::Input]',
     default => sub { [] }
     );
 
@@ -18,20 +19,17 @@ sub BUILD() {
 	my $file = Path::Class::File->new( $options->{path} ) || die __PACKAGE__.": Can't create File object for path. ".$!."\n";
 	my $inputs = [];
 	do {
-	    # Strip out information from trigger file. Start with just the
-	    # list of input directories which contain the pixel data to
-	    # be merged:
-	    push(@$inputs,$_);
-# 	    if (my ($rev,$inst,$url) = ($_ =~ /^(\d\d\d\d) (.*?) (.*?)$/)) {
-# 		# Split the URL into node and path parts:
-# 		my ($node,$sourcepath) = split(':',$url);
-# 		$self->{node} = $node;
-# 		$self->{url} = $url;
-# 		$self->{source_path} = $sourcepath;
-# 		$self->{revnum} = $rev;
-# 		$self->{instrument} = $inst;
-# 	    }
-	    
+	    # Strip out information from trigger file. We want the ID of the task, the rev. num.,
+	    # instrument and the input directory. We store this in a PXMerge::Input object:
+	    my ($id,$revnum,$instrument,$path) = split(/:/,$_);
+	    push(@$inputs, PXMerge::Input->new(
+		     {
+			 id         => $id,
+			 revnum     => $revnum,
+			 instrument => $instrument,
+			 path       => $path
+		     }
+		 ));
 	} for $file->slurp( chomp => 1 );
 	# Store the inputs:
 	$self->{inputs} = $inputs;
