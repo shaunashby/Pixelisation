@@ -16,7 +16,7 @@ use POSIX;
 use Log::Log4perl qw(get_logger :levels);
 use File::ChangeNotify;
 
-use PXMerge::Trigger;
+use PX::Merge::Trigger;
 use Task::Command::PixelMerge;
 
 use Getopt::Std;
@@ -36,6 +36,9 @@ use constant MERGE_TRIGGER_DIR => PIX_HOME."/merge/input/triggers";
 
 # Where the output pixels will be merged to:
 use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
+
+# How often to check for new triggers:
+use constant TRIGGER_CHECK_INTERVAL => 300;
 
 # Configuration for Log::Log4perl:
 my %logconf = (
@@ -81,8 +84,8 @@ if ($opt_d) {
 my $watcher = File::ChangeNotify->instantiate_watcher(
     directories => [ MERGE_TRIGGER_DIR ],
     filter      => qr/\.trigger$/,
-    sleep_interval => 20,
-    event_class => 'PXMerge::Trigger'
+    sleep_interval => TRIGGER_CHECK_INTERVAL,
+    event_class => 'PX::Merge::Trigger'
     );
 
 $logger->info("daemon started.");
