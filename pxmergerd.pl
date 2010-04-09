@@ -16,6 +16,8 @@ use POSIX;
 use Log::Log4perl qw(get_logger :levels);
 use File::ChangeNotify;
 
+use File::Copy qw(cp);
+
 use PX::Merge::Trigger;
 use Task::Command::PixelMerge;
 
@@ -33,6 +35,10 @@ use constant PIX_HOME => "/export/data2/pixels2/Pixelisation/pix";
 
 # Where we'll be scanning for triggers:
 use constant MERGE_TRIGGER_DIR => PIX_HOME."/merge/input/triggers";
+
+# Where to copy completed/failed triggers:
+use constant COMPLETED_TRIGGER_DIR => PIX_HOME."/merge/input/triggers.COMPLETED";
+use constant FAILED_TRIGGER_DIR    => PIX_HOME."/merge/input/triggers.FAILED";
 
 # Where the output pixels will be merged to:
 use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
@@ -88,13 +94,18 @@ my $watcher = File::ChangeNotify->instantiate_watcher(
     event_class => 'PX::Merge::Trigger'
     );
 
-$logger->info("daemon started.");
+$logger->info(">>>>>>>> daemon started. <<<<<<<<");
 
 # Run the event loop:
 while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
     map {
-	$logger->debug("Trigger at path: ".$_->path());
+	$logger->debug("Received trigger: ".$_->path());
 	if ($_->type() eq 'create') {
+	    # Track overall merge status so that we can decide where to copy
+	    # processed trigger file at the end of the task: if any merge fails,
+	    # the trigger file will be copied to FAIL_TRIGGER_DIR:
+	    my $merge_status = 0;
+	    # Iterate over input directories:
 	    map {
 		$logger->info("Bookkeeping: ".$_);
 		$logger->info("Going to merge from ".$_->path);
@@ -113,10 +124,20 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 			chomp;
 			$logger->warn("T::C::PM::STDERR > ".$_);
 		    } @{ $merge_cmd->stderr };
+		    $merge_status = 1;
 		} else {
 		    $logger->info("Merge complete for ".$_);
 		}
 	    } @{$_->inputs};
+	    # Check merge status.
+	    # Copy to completed triggers dir if status OK, otherwise copy to failed triggers dir:
+	    if ($merge_status) {
+		$logger->warn("Copying ".$_->path()." to triggers.FAILED");
+	    	cp($_->path(), FAILED_TRIGGER_DIR );
+	    } else {
+		$logger->info("Copying ".$_->path()." to triggers.COMPLETED");
+		cp($_->path(), COMPLETED_TRIGGER_DIR );
+	    }
 	} else {
 	    $logger->info("--- got trigger of type: ".$_->type());
 	}
