@@ -4,4 +4,8 @@ Revision history for Pixelisation Toolkit
 
         First version.
 
+0.02	04/09/10 10:47:00
+	
+	Fix bug in Task::Payload where check of input trigger class
+	expects PXExport::Trigger not PX::Export::Trigger.
 
