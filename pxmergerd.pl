@@ -105,6 +105,7 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 		    );
 
 		$merge_cmd->run;
+
 		# Check the return status:
 		if ($merge_cmd->status) {
 		    $logger->warn("Task::Command::PixelMerge exited with status ".$merge_cmd->status);
@@ -113,15 +114,7 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 			$logger->warn("T::C::PM::STDERR > ".$_);
 		    } @{ $merge_cmd->stderr };
 		} else {
-		    # In principle, everything was OK. Lets check the STDOUT buffer for the
-		    # key "Log_3  : Merging of all pixel files is successfully finished." msg:
-		    if (grep($_ =~ /.*?: Merging of all pixel files is successfully finished/, @{ $merge_cmd->stdout })) {
-			$logger->info("Merge complete for ".$_);
-		    } else {
-			$logger->warn("Task::Command::PixelMerge: INCOMPLETE MERGE for ".$_);
-			# Print the contents of the stdout buffer to log:
-			map { chomp; $logger->warn("T:C:PM::STDOUT: ".$_); } @{ $merge_cmd->stdout };
-		    }
+		    $logger->info("Merge complete for ".$_);
 		}
 	    } @{$_->inputs};
 	} else {
