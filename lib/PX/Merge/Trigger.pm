@@ -20,7 +20,7 @@ sub BUILD() {
 	my $inputs = [];
 	do {
 	    # Strip out information from trigger file. We want the ID of the task, the rev. num.,
-	    # instrument and the input directory. We store this in a PXMerge::Input object:
+	    # instrument and the input directory. We store this in a PX::Merge::Input object:
 	    my ($id,$revnum,$instrument,$path) = split(/:/,$_);
 	    push(@$inputs, PX::Merge::Input->new(
 		     {

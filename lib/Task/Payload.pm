@@ -31,8 +31,8 @@ sub new() {
 	: {};
     
     # We need the trigger object from which to extract the payload data:
-    $self->{TRIGGER_OBJECT} = (ref($_[0]) eq 'PXExport::Trigger') ? shift
-	: croak("Needs a trigger object as parameter (PXExport::Trigger object)");
+    $self->{TRIGGER_OBJECT} = (ref($_[0]) eq 'PX::Export::Trigger') ? shift
+	: croak("Needs a trigger object as parameter (PX::Export::Trigger object)");
     
     bless($self,$class);
     
