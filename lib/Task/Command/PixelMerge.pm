@@ -20,6 +20,9 @@ with 'MooseX::Role::Cmd';
 use constant PIXEL_MERGE => $ENV{PIX_HOME}."/dist/bin/pixel_merge";
 use constant PFILES      => $ENV{PIX_HOME}."/dist/pfiles";
 
+# Log all output from pixel_merge:
+use constant COMMONLOGFILE => "+".$ENV{PIX_HOME}."/pixel-merge-common.log";
+
 # Environment accessors for setting default environments for the command:
 has 'pfiles' => (
     is          => 'ro',
@@ -33,6 +36,13 @@ has 'commonscript' => (
     isa        => 'Str', traits => [ 'CmdOpt' ],
     cmdopt_env => 'COMMONSCRIPT',
     default    => 1
+    );
+
+has 'commonlogfile' => (
+    is         => 'ro',
+    isa        => 'Str', traits => [ 'CmdOpt' ],
+    cmdopt_env => 'COMMONLOGFILE',
+    default    => COMMONLOGFILE
     );
 
 # Input,s,q,,,,"Base directory of input pixel files"

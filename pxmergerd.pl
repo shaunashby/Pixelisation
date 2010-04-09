@@ -119,6 +119,8 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 			$logger->info("Merge complete for ".$_);
 		    } else {
 			$logger->warn("Task::Command::PixelMerge: INCOMPLETE MERGE for ".$_);
+			# Print the contents of the stdout buffer to log:
+			map { chomp; $logger->warn("T:C:PM::STDOUT: ".$_); } @{ $merge_cmd->stdout };
 		    }
 		}
 	    } @{$_->inputs};
