@@ -5,8 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME                => 'Pixelisation',
     AUTHOR              => 'Shaun Ashby <shaun.ashby@unige.ch>',
-    VERSION_FROM        => 'lib/Pixelisation.pm',
-    ABSTRACT_FROM       => 'lib/Pixelisation.pm',
+    VERSION_FROM        => 'lib/Pixelisation.pm'
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
       ? ('LICENSE'=> 'perl')
       : ()),

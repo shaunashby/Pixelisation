@@ -9,3 +9,8 @@ Revision history for Pixelisation Toolkit
 	Fix bug in Task::Payload where check of input trigger class
 	expects PXExport::Trigger not PX::Export::Trigger.
 
+0.03	04/19/10 16:19:00
+
+	Move the export area to another physical partition. Set it via
+	PIX_EXPORT_HOME in Task::Queue::Item.
+	Bump version number.
