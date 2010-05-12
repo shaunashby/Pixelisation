@@ -15,7 +15,7 @@ use strict;
 use warnings;
 
 use constant STAGING_DIR            => $ENV{PIX_HOME}."/staging";
-use constant EXPORT_DIR             => $ENV{PIX_EXPORT_HOME}."/export";
+use constant EXPORT_DIR             => $ENV{PIX_HOME}."/export";
 use constant COMPLETED_TRIGGER_DIR  => $ENV{PIX_HOME}."/job/input/triggers.COMPLETED";
 use constant FAILED_TRIGGER_DIR     => $ENV{PIX_HOME}."/job/input/triggers.FAILED";
 
