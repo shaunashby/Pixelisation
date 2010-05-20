@@ -1,9 +1,10 @@
 #!perl -T
 
-use Test::More tests => 6;
+use Test::More tests => 10;
 
 BEGIN {
     	use_ok( 'Pixelisation' );
+	use_ok( 'Pixelisation::Config' );
 	use_ok( 'PX::Merge::Trigger' );
 	use_ok( 'PX::Merge::Input' );
 	use_ok( 'PX::Export::Trigger' );
