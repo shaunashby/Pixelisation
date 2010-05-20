@@ -18,6 +18,8 @@ use File::ChangeNotify;
 
 use File::Copy qw(cp);
 
+use Pixelisation::Config qw(:all);
+
 use PX::Merge::Trigger;
 use Task::Command::PixelMerge;
 
@@ -29,22 +31,6 @@ $| = 1;
 
 # Parse opions:
 getopts('d');
-
-# Where the daemon will run:
-use constant PIX_HOME => "/export/data2/pixels2/Pixelisation/pix";
-
-# Where we'll be scanning for triggers:
-use constant MERGE_TRIGGER_DIR => PIX_HOME."/merge/input/triggers";
-
-# Where to copy completed/failed triggers:
-use constant COMPLETED_TRIGGER_DIR => PIX_HOME."/merge/input/triggers.COMPLETED";
-use constant FAILED_TRIGGER_DIR    => PIX_HOME."/merge/input/triggers.FAILED";
-
-# Where the output pixels will be merged to:
-use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
-
-# How often to check for new triggers:
-use constant TRIGGER_CHECK_INTERVAL => 300;
 
 # Configuration for Log::Log4perl:
 my %logconf = (
@@ -88,7 +74,7 @@ if ($opt_d) {
 }
 
 my $watcher = File::ChangeNotify->instantiate_watcher(
-    directories => [ MERGE_TRIGGER_DIR ],
+    directories => [ PXM_TRIGGER_DIR ],
     filter      => qr/\.trigger$/,
     sleep_interval => TRIGGER_CHECK_INTERVAL,
     event_class => 'PX::Merge::Trigger'
@@ -133,10 +119,10 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 	    # Copy to completed triggers dir if status OK, otherwise copy to failed triggers dir:
 	    if ($merge_status) {
 		$logger->warn("Copying ".$_->path()." to triggers.FAILED");
-	    	cp($_->path(), FAILED_TRIGGER_DIR );
+	    	cp($_->path(), PXM_FAILED_TRIGGER_DIR );
 	    } else {
 		$logger->info("Copying ".$_->path()." to triggers.COMPLETED");
-		cp($_->path(), COMPLETED_TRIGGER_DIR );
+		cp($_->path(), PXM_COMPLETED_TRIGGER_DIR );
 	    }
 	} else {
 	    $logger->info("--- got trigger of type: ".$_->type());

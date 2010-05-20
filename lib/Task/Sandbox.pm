@@ -14,7 +14,7 @@ package Task::Sandbox;
 use strict;
 use warnings;
 
-use constant MERGE_TRIGGER_DIR => $ENV{PIX_HOME}."/merge/input/triggers";
+use Pixelisation::Config qw(:all);
 
 use Carp qw(croak);
 
@@ -54,7 +54,7 @@ sub create_trigger() {
     my $self = shift;
     # For the (unique) merge trigger name, re-use one of the UUIDs of the data directories:
     my $uuid = $self->{QUEUE}->[0]->uuid;
-    my $trigger = MERGE_TRIGGER_DIR."/".$uuid.".trigger";
+    my $trigger = PXM_TRIGGER_DIR."/".$uuid.".trigger";
     $main::logger->info("[Task::Sandbox]: Writing trigger file for merge to $trigger");
     open(TRIGGER,"> $trigger");
     print TRIGGER join("\n",@{$self->{EXPORT_TABLE}});

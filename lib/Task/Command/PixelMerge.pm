@@ -17,11 +17,7 @@ use MooseX::Role::Cmd::Meta::Attribute::Trait::PIL;
 
 with 'MooseX::Role::Cmd';
 
-use constant PIXEL_MERGE => $ENV{PIX_HOME}."/dist/bin/pixel_merge";
-use constant PFILES      => $ENV{PIX_HOME}."/dist/pfiles";
-
-# Log all output from pixel_merge:
-use constant COMMONLOGFILE => "+".$ENV{PIX_HOME}."/pixel-merge-common.log";
+use Pixelisation::Config qw(:all);
 
 # Environment accessors for setting default environments for the command:
 has 'pfiles' => (
@@ -65,7 +61,7 @@ has 'Backup' => (
     );
 
 # Returns the path to the executable for our package:
-sub build_bin_name() { PIXEL_MERGE }
+sub build_bin_name() { PIXEL_MERGE_EXE }
 
 sub status() {
     my $self = shift;

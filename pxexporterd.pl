@@ -16,6 +16,8 @@ use POSIX;
 use Log::Log4perl qw(get_logger :levels);
 use File::ChangeNotify;
 
+use Pixelisation::Config qw(:all);
+
 use PX::Export::Trigger;
 use Task::Payload;
 use Task::Queue;
@@ -28,15 +30,6 @@ $| = 1;
 
 # Parse opions:
 getopts('d');
-
-# Where the daemon will run:
-use constant PIX_HOME => "/export/data2/pixels2/Pixelisation/pix";
-
-# Where we'll be scanning for triggers:
-use constant JOB_TRIGGER_DIR => PIX_HOME."/job/input/triggers";
-
-# How often we check for new triggers:
-use constant TRIGGER_CHECK_INTERVAL => 300;
 
 # Configuration for Log::Log4perl:
 my %logconf = (
@@ -80,7 +73,7 @@ if ($opt_d) {
 }
 
 my $watcher = File::ChangeNotify->instantiate_watcher(
-    directories => [ JOB_TRIGGER_DIR ],
+    directories => [ PXE_TRIGGER_DIR ],
     filter      => qr/\.trigger$/,
     sleep_interval => TRIGGER_CHECK_INTERVAL,
     event_class => 'PX::Export::Trigger'

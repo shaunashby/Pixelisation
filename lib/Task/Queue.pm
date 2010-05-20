@@ -13,9 +13,8 @@ package Task::Queue;
 use strict;
 use warnings;
 
+use Pixelisation::Config qw(:all);
 use Task::Sandbox;
-
-use constant MAX_POPULATION => 5;
 
 sub new() {
     my $proto = shift;

@@ -14,13 +14,9 @@ package Task::Queue::Item;
 use strict;
 use warnings;
 
-use constant STAGING_DIR            => $ENV{PIX_HOME}."/staging";
-use constant EXPORT_DIR             => $ENV{PIX_HOME}."/export";
-use constant COMPLETED_TRIGGER_DIR  => $ENV{PIX_HOME}."/job/input/triggers.COMPLETED";
-use constant FAILED_TRIGGER_DIR     => $ENV{PIX_HOME}."/job/input/triggers.FAILED";
+use Pixelisation::Config qw(:all);
 
 use File::Copy qw(cp mv);
-
 use Carp qw(croak);
 
 use overload q{""} => \&to_string;
@@ -58,16 +54,16 @@ sub run() {
     $self->{DEST_SUBDIR} = [ reverse ( split("/", $self->{PAYLOAD_OBJECT}->source_path() ) ) ]->[0];
     $self->{DEST_UUID} = $self->{DEST_SUBDIR};
     # Set the export path:
-    $self->{EXPORT_PATH} = EXPORT_DIR."/".$self->{DEST_SUBDIR};
+    $self->{EXPORT_PATH} = PXE_EXPORT_DIR."/".$self->{DEST_SUBDIR};
     # Where data will be staged to:
-    $self->{STAGING_PATH} = STAGING_DIR."/".$self->{DEST_SUBDIR};
+    $self->{STAGING_PATH} = PXE_STAGING_DIR."/".$self->{DEST_SUBDIR};
 
     $main::logger->debug(sprintf("[Task::Queue::Item]: Staging data from %s",$self->{PAYLOAD_OBJECT}->url() ));
     $main::logger->debug(sprintf("[Task::Queue::Item]: Staging data to %s",$self->{STAGING_PATH}));
 
     my $sourceurl = $self->{PAYLOAD_OBJECT}->url();
     
-    open(RSYNC,"rsync -auv -e ssh $sourceurl ".STAGING_DIR."|") || die __PACKAGE__.": Unable to rsync $sourceurl :".$!;
+    open(RSYNC,"rsync -auv -e ssh $sourceurl ".PXE_STAGING_DIR."|") || die __PACKAGE__.": Unable to rsync $sourceurl :".$!;
     while(<RSYNC>) {
 	if (my ($size,$speed) = ( $_ =~ /.*? received (.*?) bytes \s*(.*?) bytes\/sec$/ )) {
 	    $size = $size / (1024 * 1024); # MB
@@ -105,15 +101,15 @@ sub finalize() {
     if ($self->status() == 0) {
 	# Copy to completed triggers dir if status OK, otherwise copy to failed triggers dir:
 	$main::logger->debug("[Task::Queue::Item]: Copying ".$self->{PAYLOAD_OBJECT}->trigger_path()." to triggers.COMPLETED");
-	cp($self->{PAYLOAD_OBJECT}->trigger_path(), COMPLETED_TRIGGER_DIR );
+	cp($self->{PAYLOAD_OBJECT}->trigger_path(), PXE_COMPLETED_TRIGGER_DIR );
     } else {
-	cp($self->{PAYLOAD_OBJECT}->trigger_path(), FAILED_TRIGGER_DIR );
+	cp($self->{PAYLOAD_OBJECT}->trigger_path(), PXE_FAILED_TRIGGER_DIR );
     }
 }
 
 sub _export() {
     my $self = shift;
-    $main::logger->debug(sprintf("[Task::Queue::Item]: Exporting data to %s",EXPORT_DIR));
+    $main::logger->debug(sprintf("[Task::Queue::Item]: Exporting data to %s",PXE_EXPORT_DIR));
     if ( -d $self->{STAGING_PATH} ) {
 	mv($self->{STAGING_PATH},$self->{EXPORT_PATH});
 	$self->{STATUS} = 0; # Gooood
