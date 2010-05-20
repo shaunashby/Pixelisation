@@ -1,0 +1,72 @@
+#____________________________________________________________________ 
+# File: Config.pm
+#____________________________________________________________________ 
+#  
+# Author: Shaun ASHBY <Shaun.Ashby@gmail.com>
+# Update: 2010-05-20 15:33:12+0200
+# Revision: $Id$ 
+#
+# Copyright: 2010 (C) Shaun ASHBY
+#
+#--------------------------------------------------------------------
+package Pixelisation::Config;
+
+use strict;
+use warnings;
+
+use base qw(Exporter);
+
+our $VERSION = '0.01';
+
+# Context exported as global variable using :context tag:
+our %EXPORT_TAGS = ( 'all' => [ qw(
+PIX_HOME
+TRIGGER_CHECK_INTERVAL
+MAX_POPULATION
+PXE_STAGING_DIR
+PXE_EXPORT_DIR
+PXE_TRIGGER_DIR
+PXE_COMPLETED_TRIGGER_DIR
+PXE_FAILED_TRIGGER_DIR
+PXM_TRIGGER_DIR
+PXM_COMPLETED_TRIGGER_DIR
+PXM_FAILED_TRIGGER_DIR
+PIXEL_MERGE_EXE
+PFILES
+COMMONLOGFILE
+PIXEL_ARCHIVE_DIR
+) ] );
+
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+
+# Daemon working directory::
+use constant PIX_HOME => "@PIX_HOME@/pix";
+
+# How often we check for new triggers:
+use constant TRIGGER_CHECK_INTERVAL => 30;
+
+# Max number of items that will occupy the sandbox before a merge trigger is written
+# and data moved to export directory for merging:
+use constant MAX_POPULATION => 2;
+
+use constant PXE_STAGING_DIR            => PIX_HOME."/staging";
+use constant PXE_EXPORT_DIR             => PIX_HOME."/export";
+
+use constant PXE_TRIGGER_DIR            => PIX_HOME."/job/input/triggers";
+use constant PXE_COMPLETED_TRIGGER_DIR  => PIX_HOME."/job/input/triggers.COMPLETED";
+use constant PXE_FAILED_TRIGGER_DIR     => PIX_HOME."/job/input/triggers.FAILED";
+
+use constant PXM_TRIGGER_DIR            => PIX_HOME."/merge/input/triggers";
+use constant PXM_COMPLETED_TRIGGER_DIR  => PIX_HOME."/merge/input/triggers.COMPLETED";
+use constant PXM_FAILED_TRIGGER_DIR     => PIX_HOME."/merge/input/triggers.FAILED";
+
+use constant PIXEL_MERGE_EXE   => PIX_HOME."/dist/bin/pixel_merge";
+use constant PFILES            => PIX_HOME."/dist/pfiles";
+use constant COMMONLOGFILE     => "+".PIX_HOME."/pixel-merge-common.log";
+
+# Where the output pixels will be merged to:
+use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
+
+1;
+
+__END__

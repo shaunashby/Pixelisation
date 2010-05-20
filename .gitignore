@@ -1,4 +1,9 @@
+Makefile
+Makefile.old
 *~
 pix
 pxexport.log
 pxmerge.log
+tmp
+lib/Pixelisation/Config.pm
+t/data
