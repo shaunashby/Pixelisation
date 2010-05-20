@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME                => 'Pixelisation',
     AUTHOR              => 'Shaun Ashby <shaun.ashby@unige.ch>',
-    VERSION_FROM        => 'lib/Pixelisation.pm'
+    VERSION_FROM        => 'lib/Pixelisation.pm',
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
       ? ('LICENSE'=> 'perl')
       : ()),
@@ -26,3 +26,40 @@ WriteMakefile(
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Pixelisation-*' },
 );
+
+sub MY::postamble {
+    return <<'MAKE_FRAG';
+REV:=9999
+INST:=isgri
+BASE_DATA_DIR:=tmp/data
+TEST_DATA:=t/data/pixels.tgz
+UUID:=$(shell uuidgen | sed -e 's/-//g')
+EXPORT_TRIGGER_DIR:=pix/job/input/triggers
+
+install_config: lib/Pixelisation/Config.pm
+	@echo ">> Creating Pixelisation::Config"
+
+lib/Pixelisation/Config.pm: lib/Pixelisation/Config.pm.in
+	@cat $^ | sed -e "s#@PIX_HOME@#$(PWD)#g" > $@
+
+install_test_data: export_trigger_dir
+	@echo ">> Running test data target."
+	@mkdir -p $(BASE_DATA_DIR)/$(UUID); tar -xf $(TEST_DATA) -C $(BASE_DATA_DIR)/$(UUID)
+
+export_trigger_dir:
+	@if [ ! -d $(EXPORT_TRIGGER_DIR) ]; then \
+	 echo ">> Creating trigger directory: $(EXPORT_TRIGGER_DIR)"; \
+	 mkdir -p $(EXPORT_TRIGGER_DIR) > /dev/null 2>&1; \
+	fi
+
+test_export_trigger: install_test_data
+	@echo ">> Generating test trigger for $(UUID)"
+	$(NOECHO) $(TOUCH) $(EXPORT_TRIGGER_DIR)/$(UUID).trigger
+	@echo "$(REV) $(INST) localhost:$(PWD)/$(BASE_DATA_DIR)/$(UUID)" >> $(EXPORT_TRIGGER_DIR)/$(UUID).trigger
+
+clean_testdata:
+	@echo ">> Cleaning test area $(BASE_DATA_DIR)"
+	@rm -rf $(BASE_DATA_DIR)
+
+MAKE_FRAG
+    }
