@@ -4,6 +4,8 @@ MANIFEST
 README
 pxexporterd.pl
 pxmergerd.pl
+lib/Pixelisation/Config.pm
+lib/Pixelisation.pm
 lib/MooseX/Role/Cmd/Meta/Attribute/Trait/PIL.pm
 lib/PX/Export/Trigger.pm
 lib/PX/Merge/Input.pm
@@ -14,7 +16,8 @@ lib/Task/Queue/Item.pm
 lib/Task/Queue.pm
 lib/Task/Sandbox.pm
 t/00-load.t
-t/01-task-command-run.t
-t/boilerplate.t
-t/pod-coverage.t
-t/pod.t
+t/01-pxe-trigger-test.t
+t/02-pxm-trigger-test.t
+t/03-pixelisation-config-test.t
+t/04-task-payload-test.t
+t/05-task-modules-test.t
