@@ -14,4 +14,4 @@ ok($#$inputs == 0,"Input array has only one entry.");
 
 my $only_input = $inputs->[0];
 ok("$only_input" eq "ID0001:REV9999:testi","Format of storing input data is correct.");
-ok($only_input->path eq "/path/to/data","Path to merge input data.");
+ok($only_input->path eq "/path/to/data/A9E652E745804D608E583E710A548631","Path to merge input data.");

@@ -10,8 +10,8 @@ my $payload = Task::Payload->new($trig);
 
 ok(ref($payload) eq 'Task::Payload',"Instance creation OK.");
 ok($payload->node eq "host","Node obtained from trigger payload.");
-ok($payload->url eq "host:/path/to/data","Host obtained from trigger payload.");
-ok($payload->source_path eq "/path/to/data","Host obtained from trigger payload.");
+ok($payload->url eq "host:/path/to/data/411F674B9801461FBC06293925034565","Host obtained from trigger payload.");
+ok($payload->source_path eq "/path/to/data/411F674B9801461FBC06293925034565","Host obtained from trigger payload.");
 ok($payload->revnum == 9999,"Rev num obtained from trigger payload.");
 ok($payload->instrument eq "testi","Instrument obtained from trigger payload.");
 ok($payload->trigger_path eq "t/triggers/pxe.trigger","Path to export input trigger payload.");

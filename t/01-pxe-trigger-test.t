@@ -8,8 +8,8 @@ my $trig = PX::Export::Trigger->new( { path => 't/triggers/pxe.trigger', type =>
 
 ok(ref($trig) eq 'PX::Export::Trigger',"Instance creation OK.");
 ok($trig->node eq "host","Node obtained from trigger file.");
-ok($trig->url eq "host:/path/to/data","Host obtained from trigger file.");
-ok($trig->source_path eq "/path/to/data","Host obtained from trigger file.");
+ok($trig->url eq "host:/path/to/data/411F674B9801461FBC06293925034565","Host obtained from trigger file.");
+ok($trig->source_path eq "/path/to/data/411F674B9801461FBC06293925034565","Host obtained from trigger file.");
 ok($trig->revnum == 9999,"Rev num obtained from trigger file.");
 ok($trig->instrument eq "testi","Instrument obtained from trigger file.");
 ok($trig->path eq "t/triggers/pxe.trigger","Path to export input trigger file.");
