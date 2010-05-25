@@ -31,10 +31,11 @@ sub MY::postamble {
     return <<'MAKE_FRAG';
 REV:=9999
 INST:=isgri
-BASE_DATA_DIR:=tmp/data
+BASE_DATA_DIR:=/unsaved_data/$(USER)/tmp/data
 TEST_DATA:=t/data/pixels.tgz
 UUID:=$(shell uuidgen | sed -e 's/-//g')
 EXPORT_TRIGGER_DIR:=pix/job/input/triggers
+TRIGGER_HOST:=isdclogin2
 
 install_config: lib/Pixelisation/Config.pm
 	@echo ">> Creating Pixelisation::Config"
@@ -43,8 +44,9 @@ lib/Pixelisation/Config.pm: lib/Pixelisation/Config.pm.in
 	@cat $^ | sed -e "s#@PIX_HOME@#$(PWD)#g" > $@
 
 install_test_data: export_trigger_dir
-	@echo ">> Running test data target."
-	@mkdir -p $(BASE_DATA_DIR)/$(UUID); tar -xf $(TEST_DATA) -C $(BASE_DATA_DIR)/$(UUID)
+	@echo ">> Running test data target. Installing data on $(TRIGGER_HOST)...."
+	@ssh $(TRIGGER_HOST) "mkdir -p $(BASE_DATA_DIR)/$(UUID)"
+	@cat $(TEST_DATA) | ssh $(TRIGGER_HOST) tar -xzf - -C $(BASE_DATA_DIR)/$(UUID)
 
 export_trigger_dir:
 	@if [ ! -d $(EXPORT_TRIGGER_DIR) ]; then \
@@ -55,7 +57,7 @@ export_trigger_dir:
 test_export_trigger: install_test_data
 	@echo ">> Generating test trigger for $(UUID)"
 	$(NOECHO) $(TOUCH) $(EXPORT_TRIGGER_DIR)/$(UUID).trigger
-	@echo "$(REV) $(INST) localhost:$(PWD)/$(BASE_DATA_DIR)/$(UUID)" >> $(EXPORT_TRIGGER_DIR)/$(UUID).trigger
+	@echo "$(REV) $(INST) $(TRIGGER_HOST):$(BASE_DATA_DIR)/$(UUID)" >> $(EXPORT_TRIGGER_DIR)/$(UUID).trigger
 
 clean_testdata:
 	@echo ">> Cleaning test area $(BASE_DATA_DIR)"
