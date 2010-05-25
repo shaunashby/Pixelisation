@@ -14,3 +14,7 @@ Revision history for Pixelisation Toolkit
 	Move the export area to another physical partition. Set it via
 	PIX_EXPORT_HOME in Task::Queue::Item.
 	Bump version number.
+
+0.04    05/25/10 16:48
+
+	Add status monitoring daemon. Improvements to tests.
