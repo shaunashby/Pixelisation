@@ -2,8 +2,7 @@ Makefile
 Makefile.old
 *~
 pix
-pxexport.log
-pxmerge.log
+*.log
 tmp
 lib/Pixelisation/Config.pm
 t/data
