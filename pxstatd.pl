@@ -94,6 +94,8 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 	    # Loop over all ReportEntry objects:
 	    map {
 		$logger->info($_);
+		# Dump the LDIF for this entry:
+		$_->ldif->write(PX_DEFAULT_LDAP_OUTPUT_DIR."/".$_->revnum.".ldif");
 	    } @{ $_->report_entries };
 	}
     } @triggers;

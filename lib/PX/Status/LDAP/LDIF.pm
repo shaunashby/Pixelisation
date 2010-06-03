@@ -19,10 +19,6 @@ use Template;
 
 use Pixelisation::Config qw(:all);
 
-use overload q{""} => \&display;
-
-use constant PX_DEFAULT_LDAP_BASEDN => 'ou=Datasets,dc=ashby,dc=isdc,dc=unige,dc=ch';
-
 sub new() {
     my $proto = shift;
     my $class = ref($proto) || $proto;
@@ -44,18 +40,17 @@ sub new() {
 	config => {
 	    START_TAG => '[%',
 	    END_TAG => '%]',
-	    INCLUDE_PATH => $ENV{PX_TEMPLATE_PATH} || PX_TEMPLATE_PATH
+	    INCLUDE_PATH => $ENV{PX_TEMPLATE_PATH} || PX_TEMPLATE_PATH,
 	});
     return bless($self,$class);
 }
 
 sub entries { return shift->{entries}; }
 
-sub display() {
+sub write() {
     my $self = shift;
-    my $output = '';
-    $self->{tt}->process(\*DATA, $self->{data},\$output) || die $self->{tt}->error();
-    return $output;
+    my $output = shift;
+    $self->{tt}->process(\*DATA, $self->{data},$output) || die $self->{tt}->error();
 }
 
 1;

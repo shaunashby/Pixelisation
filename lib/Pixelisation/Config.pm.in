@@ -36,6 +36,8 @@ PFILES
 COMMONLOGFILE
 PIXEL_ARCHIVE_DIR
 PX_TEMPLATE_PATH
+PX_DEFAULT_LDAP_BASEDN
+PX_DEFAULT_LDAP_OUTPUT_DIR
 ) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -70,6 +72,8 @@ use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
 
 # For TT2 templates:
 use constant PX_TEMPLATE_PATH => PIX_HOME."/templates/tt2";
+use constant PX_DEFAULT_LDAP_BASEDN      => 'ou=Datasets,dc=ashby,dc=isdc,dc=unige,dc=ch';
+use constant PX_DEFAULT_LDAP_OUTPUT_DIR  => PIX_HOME."/ldif";
 
 1;
 
