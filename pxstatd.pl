@@ -90,7 +90,11 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 		$logger->info($_);
 	    } @{ $_->report_entries };	    
 	} else {
-	    $logger->info("Regenerating status information from trigger file.");
+	    $logger->info("Regenerating status information (and LDAP summaries) from trigger file.");
+	    # Loop over all ReportEntry objects:
+	    map {
+		$logger->info($_);
+	    } @{ $_->report_entries };
 	}
     } @triggers;
 }

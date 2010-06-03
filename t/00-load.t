@@ -1,6 +1,6 @@
 #!/opt/local/bin/perl -T
 
-use Test::More tests => 12;
+use Test::More tests => 14;
 
 BEGIN {
     	use_ok( 'Pixelisation' );
@@ -10,6 +10,8 @@ BEGIN {
 	use_ok( 'PX::Export::Trigger' );
 	use_ok( 'PX::Status::Trigger' );
 	use_ok( 'PX::Status::ReportEntry' );
+	use_ok( 'PX::Status::LDAP::Entry' );
+	use_ok( 'PX::Status::LDAP::LDIF' );
 	use_ok( 'Task::Queue' );
 	use_ok( 'Task::Queue::Item' );
 	use_ok( 'Task::Sandbox' );

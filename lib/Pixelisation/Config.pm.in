@@ -35,6 +35,7 @@ PIXEL_MERGE_EXE
 PFILES
 COMMONLOGFILE
 PIXEL_ARCHIVE_DIR
+PX_TEMPLATE_PATH
 ) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -66,6 +67,9 @@ use constant COMMONLOGFILE     => "+".PIX_HOME."/pixel-merge-common.log";
 
 # Where the output pixels will be merged to:
 use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
+
+# For TT2 templates:
+use constant PX_TEMPLATE_PATH => PIX_HOME."/templates/tt2";
 
 1;
 

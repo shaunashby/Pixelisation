@@ -18,8 +18,8 @@ my $eldif = $export_trig->ldif;
 # Checkthe individual entries:
 map {
     ok($_->cn eq 9999,"LDIF entry CN for export trigger is correct.");
-    ok($_->keyword eq 'dsStatus',"LDIF entry keyword for export trigger is correct.");    
-    ok($_->value eq 0,"LDIF entry value for export trigger is correct.");    
+    ok($_->keyword eq 'dsStatus',"LDIF entry keyword for export trigger is correct.");
+    ok($_->value eq 0,"LDIF entry value for export trigger is correct.");
 } @{ $eldif->entries };
 
 # Check the entries in the merge trigger:
@@ -29,6 +29,6 @@ my $mldif = $merge_trig->ldif;
 # Checkthe individual entries:
 map {
     ok($_->cn eq 9999,"LDIF entry CN for merge trigger is correct.");
-    ok($_->keyword eq 'dsComplete',"LDIF entry keyword for merge trigger is correct.");    
-    ok($_->value eq 'TRUE',"LDIF value keyword for merge trigger is correct.");    
+    ok($_->keyword eq 'dsComplete',"LDIF entry keyword for merge trigger is correct.");
+    ok($_->value eq 'TRUE',"LDIF value keyword for merge trigger is correct.");
 } @{ $mldif->entries };

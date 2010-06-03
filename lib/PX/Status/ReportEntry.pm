@@ -37,7 +37,7 @@ sub instrument() { return shift->{instrument}; }
 
 sub display() {
     my $self = shift;
-    return sprintf("%-04d  %-s ",$self->{revnum}, $self->{instrument});
+    return sprintf("%04d  %s",$self->{revnum}, $self->{instrument});
 }
 
 1;
