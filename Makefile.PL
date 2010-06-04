@@ -21,7 +21,8 @@ WriteMakefile(
 	'Moose::Util::TypeConstraints' => 0.93,
 	'MooseX::Role::Cmd' => 0.09,
 	'IPC::Cmd'    => 0.4,
-	'IPC::Run'    => 0.89
+	'IPC::Run'    => 0.89,
+	'Template'    => 2.0
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Pixelisation-*' },
