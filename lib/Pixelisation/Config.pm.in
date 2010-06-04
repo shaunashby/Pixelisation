@@ -16,7 +16,7 @@ use warnings;
 
 use base qw(Exporter);
 
-our $VERSION = '0.01';
+our $VERSION = '0.04';
 
 # Context exported as global variable using :context tag:
 our %EXPORT_TAGS = ( 'all' => [ qw(
@@ -63,15 +63,15 @@ use constant PXM_TRIGGER_DIR            => PIX_HOME."/merge/input/triggers";
 use constant PXM_COMPLETED_TRIGGER_DIR  => PIX_HOME."/merge/input/triggers.COMPLETED";
 use constant PXM_FAILED_TRIGGER_DIR     => PIX_HOME."/merge/input/triggers.FAILED";
 
-use constant PIXEL_MERGE_EXE   => PIX_HOME."/dist/bin/pixel_merge";
-use constant PFILES            => PIX_HOME."/dist/pfiles";
-use constant COMMONLOGFILE     => "+".PIX_HOME."/pixel-merge-common.log";
+use constant PIXEL_MERGE_EXE            => PIX_HOME."/dist/bin/pixel_merge";
+use constant PFILES                     => PIX_HOME."/dist/pfiles";
+use constant COMMONLOGFILE              => "+".PIX_HOME."/pixel-merge-common.log";
 
 # Where the output pixels will be merged to:
-use constant PIXEL_ARCHIVE_DIR => PIX_HOME."/archive";
+use constant PIXEL_ARCHIVE_DIR           => PIX_HOME."/archive";
 
 # For TT2 templates:
-use constant PX_TEMPLATE_PATH => PIX_HOME."/templates/tt2";
+use constant PX_TEMPLATE_PATH            => PIX_HOME."/templates/tt2";
 use constant PX_DEFAULT_LDAP_BASEDN      => 'ou=Datasets,dc=ashby,dc=isdc,dc=unige,dc=ch';
 use constant PX_DEFAULT_LDAP_OUTPUT_DIR  => PIX_HOME."/ldif";
 

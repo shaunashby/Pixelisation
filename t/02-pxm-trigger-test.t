@@ -10,7 +10,7 @@ ok(ref($trig) eq 'PX::Merge::Trigger',"Instance creation OK.");
 ok(ref($trig->inputs) eq "ARRAY","Input list is array ref.");
 
 my $inputs = $trig->inputs;
-ok($#$inputs == 0,"Input array has only one entry.");
+ok($#$inputs == 1,"Input array has only 2 entries.");
 
 my $only_input = $inputs->[0];
 ok("$only_input" eq "ID0001:REV9999:testi","Format of storing input data is correct.");
