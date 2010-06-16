@@ -16,7 +16,7 @@ use POSIX;
 use Log::Log4perl qw(get_logger :levels);
 use File::ChangeNotify;
 
-use File::Copy qw(cp);
+use File::Copy qw(cp mv);
 
 use Pixelisation::Config qw(:all);
 
@@ -113,6 +113,9 @@ while ( (my @triggers = $watcher->wait_for_events()) && (!$shutdown) ) {
 		    $merge_status = 1;
 		} else {
 		    $logger->info("Merge complete for ".$_);
+		    $logger->info("Readying for cleaning.");
+		    # Rename the directory to mark it as ready for cleaning:
+		    mv($_->path,sprintf("%s.delete",$_->path));
 		}
 	    } @{$_->inputs};
 	    # Check merge status.
